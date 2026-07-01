@@ -1,0 +1,9 @@
+.vs/
+packages/
+bin/
+obj/
+*.user
+*.log
+node_modules/
+.DS_Store
+Thumbs.db
