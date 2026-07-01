@@ -1,0 +1,520 @@
+﻿@model List<Timetabling.Models.Assignment>
+@{
+    Layout = null;
+    var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+    var grps = Model
+        .GroupBy(m => m.TimeSlot.StartTime + "-" + m.TimeSlot.EndTime)
+        .OrderBy(g => g.Key).ToList();
+    int rowNum = 1;
+    string sessionInfo = "";
+    if (ViewBag.Session != null)
+    {
+        sessionInfo = ViewBag.Session.AcademicYear + " "
+                    + ViewBag.Session.Semester + " Semester";
+    }
+
+    var palette = new[] {
+        "#3b82f6","#10b981","#f59e0b","#ef4444","#8b5cf6",
+        "#06b6d4","#f97316","#84cc16","#ec4899","#14b8a6",
+        "#6366f1","#d946ef","#0ea5e9","#22c55e","#eab308",
+        "#dc2626","#7c3aed","#0891b2","#16a34a","#ca8a04",
+        "#be185d","#0369a1","#15803d","#b45309","#7e22ce",
+        "#0e7490","#166534","#92400e","#6b21a8","#155e75",
+        "#1e3a5f","#713f12","#4a1942","#052e16","#1c1917",
+        "#450a0a","#1e1b4b","#042f2e","#0c0a09","#18181b"
+    };
+    var deptColors = new System.Collections.Generic.Dictionary<string, string>();
+    int ci = 0;
+    foreach (var item in Model)
+    {
+        if (!deptColors.ContainsKey(item.Course.DepartmentName))
+        {
+            deptColors[item.Course.DepartmentName] = palette[ci % palette.Length];
+            ci++;
+        }
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>University Timetable - @sessionInfo</title>
+    <style>
+        body {
+            font-family: Arial,sans-serif;
+            font-size: 11px;
+            padding: 16px;
+            background: #fff;
+            color: #1e293b
+        }
+
+        .hdr {
+            text-align: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #0f2540
+        }
+
+            .hdr h4 {
+                color: #0f2540;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin: 0;
+                font-size: 14px
+            }
+
+            .hdr h6 {
+                color: #2563a8;
+                margin: 4px 0 0;
+                font-size: 12px
+            }
+
+            .hdr small {
+                color: #64748b;
+                font-size: 10px
+            }
+
+        .stats {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            justify-content: center;
+            flex-wrap: wrap
+        }
+
+        .stat-box {
+            background: #f4f6fb;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 6px 14px;
+            text-align: center
+        }
+
+            .stat-box .n {
+                font-size: 16px;
+                font-weight: 700;
+                color: #0f2540
+            }
+
+            .stat-box .l {
+                font-size: 9px;
+                color: #64748b
+            }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #f8fafc;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0
+        }
+
+        .leg-item {
+            padding: 2px 7px;
+            border-radius: 0 3px 3px 0;
+            font-size: 9px;
+            font-weight: 600
+        }
+
+        .sec {
+            font-size: 10px;
+            font-weight: 700;
+            color: #0f2540;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin: 12px 0 6px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #e2e8f0
+        }
+
+        .grid-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+            margin-bottom: 16px
+        }
+
+            .grid-table th {
+                background: #0f2540;
+                color: #fff;
+                padding: 5px;
+                text-align: center;
+                font-size: 9px
+            }
+
+            .grid-table td {
+                border: 1px solid #e2e8f0;
+                padding: 3px;
+                vertical-align: top;
+                min-width: 80px
+            }
+
+        .time-cell {
+            background: #f8fafc;
+            font-weight: 600;
+            text-align: center;
+            color: #475569;
+            white-space: nowrap;
+            width: 65px
+        }
+
+        .course-card {
+            border-radius: 0 3px 3px 0;
+            padding: 3px 4px;
+            margin-bottom: 2px;
+            text-align: left
+        }
+
+            .course-card strong {
+                display: block;
+                font-size: 9px
+            }
+
+            .course-card span {
+                font-size: 8px;
+                color: #475569;
+                display: block
+            }
+
+        .uwc-card {
+            border-radius: 4px;
+            padding: 3px 5px;
+            margin-bottom: 2px;
+            text-align: left
+        }
+
+        .uwc-badge {
+            font-size: 8px;
+            font-weight: 700;
+            padding: 1px 4px;
+            border-radius: 2px;
+            display: inline-block;
+            margin-bottom: 2px;
+            color: #fff
+        }
+
+        .uwc-card strong {
+            display: block;
+            font-size: 9px
+        }
+
+        .uwc-card span {
+            font-size: 8px;
+            display: block
+        }
+
+        .empty {
+            color: #cbd5e1;
+            text-align: center;
+            font-size: 9px
+        }
+
+        .dept-section {
+            margin-bottom: 14px
+        }
+
+        .dept-header {
+            padding: 6px 10px;
+            border-radius: 5px 5px 0 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff
+        }
+
+        .list-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px
+        }
+
+            .list-table th {
+                background: #0f2540;
+                color: #fff;
+                padding: 4px 6px;
+                text-align: left;
+                font-size: 8px;
+                text-transform: uppercase
+            }
+
+            .list-table td {
+                padding: 3px 6px;
+                border-bottom: 1px solid #e2e8f0;
+                vertical-align: middle
+            }
+
+            .list-table tr:nth-child(even) td {
+                background: #f8fafc
+            }
+
+        .ftr {
+            margin-top: 14px;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #94a3b8
+        }
+
+        .no-print {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            justify-content: flex-end
+        }
+
+        .btn-p {
+            background: #0f2540;
+            color: #fff;
+            border: none;
+            padding: 7px 18px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer
+        }
+
+        .btn-b {
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            text-decoration: none;
+            font-weight: 600
+        }
+
+        .badge-uwc {
+            display: inline-block;
+            padding: 1px 5px;
+            border-radius: 8px;
+            font-size: 8px;
+            font-weight: 700;
+            color: #fff
+        }
+
+        .badge-reg {
+            display: inline-block;
+            padding: 1px 5px;
+            border-radius: 8px;
+            font-size: 8px;
+            font-weight: 600;
+            background: #e2e8f0;
+            color: #475569
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print">
+        <a href="/Timetable" class="btn-b">&larr; Back</a>
+        <button class="btn-p" onclick="window.print()">Print / Save as PDF</button>
+    </div>
+
+    <!-- Header -->
+    <div class="hdr">
+        <h4>Landmark University, Omu-Aran</h4>
+        <h6>Official Lecture Timetable &mdash; @sessionInfo</h6>
+        <small>
+            Generated: @DateTime.Now.ToString("dddd, dd MMMM yyyy")
+            &nbsp;|&nbsp; Courses: @Model.Count
+            &nbsp;|&nbsp; Departments: @deptColors.Count
+            &nbsp;|&nbsp; CSP Backtracking Algorithm
+        </small>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat-box">
+            <div class="n">@Model.Count</div>
+            <div class="l">Scheduled</div>
+        </div>
+        <div class="stat-box">
+            <div class="n">@Model.Select(m => m.Room.RoomId).Distinct().Count()</div>
+            <div class="l">Rooms Used</div>
+        </div>
+        <div class="stat-box">
+            <div class="n">@Model.Select(m => m.Course.LecturerId).Distinct().Count()</div>
+            <div class="l">Lecturers</div>
+        </div>
+        <div class="stat-box">
+            <div class="n">@deptColors.Count</div>
+            <div class="l">Departments</div>
+        </div>
+        <div class="stat-box">
+            <div class="n">@Model.Count(m => m.Course.IsUWC)</div>
+            <div class="l">UWC Courses</div>
+        </div>
+        <div class="stat-box">
+            <div class="n">@Model.Sum(m => m.SoftPenalty)</div>
+            <div class="l">Soft Penalty</div>
+        </div>
+    </div>
+
+    <!-- Department Legend -->
+    <div class="sec">Department Legend</div>
+    <div class="legend">
+        @foreach (var kvp in deptColors)
+        {
+            <span class="leg-item"
+                  style="background:@(kvp.Value)20;border-left:3px solid @kvp.Value;color:@kvp.Value;">
+                @kvp.Key
+            </span>
+        }
+        <span class="leg-item"
+              style="background:#f59e0b20;border:2px solid #f59e0b;color:#f59e0b;border-radius:3px;">
+            ★ UWC
+        </span>
+    </div>
+
+    <!-- Weekly Grid -->
+    <div class="sec">Weekly Timetable Grid</div>
+    <table class="grid-table">
+        <thead>
+            <tr>
+                <th>Time</th>
+                @foreach (var d in days)
+                {
+                    <th>@d</th>
+}
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var g in grps)
+            {
+                <tr>
+                    <td class="time-cell">@g.Key</td>
+                    @foreach (var day in days)
+                    {
+                        var cells = g.Where(m => m.TimeSlot.Day.Equals(
+                            day, StringComparison.OrdinalIgnoreCase)).ToList();
+                        <td>
+                            @if (!cells.Any())
+                            {
+                                <div class="empty">—</div>
+                            }
+                            @foreach (var item in cells)
+                            {
+                                var dc = deptColors.ContainsKey(item.Course.DepartmentName)
+                                    ? deptColors[item.Course.DepartmentName] : "#2563a8";
+                                if (item.Course.IsUWC)
+                                {
+                                    <div class="uwc-card"
+                                         style="background:@(dc)18;border:2px solid @dc;">
+                                        <span class="uwc-badge" style="background:@dc;">
+                                            UWC L@item.Course.CourseLevel
+                                        </span>
+                                        <strong style="color:#1e293b;">@item.Course.CourseCode</strong>
+                                        <span style="color:#475569;">@item.Course.CourseTitle</span>
+                                        <span style="color:#64748b;">
+                                            @item.Room.RoomName (@item.Room.RoomCapacity)
+                                        </span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="course-card"
+                                         style="background:@(dc)12;border-left:3px solid @dc;">
+                                        <strong style="color:#1e293b;">@item.Course.CourseCode</strong>
+                                        <span style="color:@dc;font-weight:600;">
+                                            @item.Course.DepartmentName
+                                        </span>
+                                        <span style="color:#475569;">@item.Course.CourseTitle</span>
+                                        <span style="color:#64748b;">
+                                            @item.Course.LecturerName | @item.Room.RoomName
+                                        </span>
+                                    </div>
+                                }
+                            }
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- By Department -->
+    <div class="sec" style="margin-top:10px;">Complete Schedule — By Department</div>
+    @{
+        var byDept = Model
+            .GroupBy(m => m.Course.DepartmentName)
+            .OrderBy(g => g.Key).ToList();
+    }
+    @foreach (var deptGroup in byDept)
+    {
+        var dc3 = deptColors.ContainsKey(deptGroup.Key)
+            ? deptColors[deptGroup.Key] : "#2563a8";
+        <div class="dept-section">
+            <div class="dept-header" style="background:@dc3;">
+                @deptGroup.Key
+                &nbsp;—&nbsp; @deptGroup.Count() courses
+            </div>
+            <table class="list-table"
+                   style="border:1px solid @(dc3)44;border-top:none;">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Title</th>
+                        <th>Level</th>
+                        <th>Type</th>
+                        <th>Lecturer</th>
+                        <th>Room</th>
+                        <th>Day</th>
+                        <th>Start</th>
+                        <th>End</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in deptGroup
+                        .OrderBy(m => m.Course.CourseLevel)
+                        .ThenBy(m => m.TimeSlot.DayOrder)
+                        .ThenBy(m => m.TimeSlot.StartTime))
+                    {
+                        <tr>
+                            <td><strong style="color:@dc3;">@item.Course.CourseCode</strong></td>
+                            <td>@item.Course.CourseTitle</td>
+                            <td>L@item.Course.CourseLevel</td>
+                            <td>
+                                @if (item.Course.IsUWC)
+                                {
+                                    <span class="badge-uwc" style="background:@dc3;">UWC</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-reg">Regular</span>
+                                }
+                            </td>
+                            <td>@item.Course.LecturerName</td>
+                            <td>@item.Room.RoomName</td>
+                            <td>@item.TimeSlot.Day</td>
+                            <td>@item.TimeSlot.StartTime</td>
+                            <td>@item.TimeSlot.EndTime</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <!-- Footer -->
+    <div class="ftr">
+        <span>Landmark University Timetabling System — CSP Backtracking Scheduler</span>
+        <span>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</span>
+    </div>
+
+    <script>
+        window.addEventListener('beforeprint', function () {
+            document.querySelector('.no-print').style.display = 'none';
+        });
+        window.addEventListener('afterprint', function () {
+            document.querySelector('.no-print').style.display = 'flex';
+        });
+    </script>
+
+</body>
+</html>

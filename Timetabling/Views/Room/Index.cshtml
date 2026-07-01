@@ -1,0 +1,89 @@
+﻿@model List<Timetabling.Models.Room>
+@{ ViewBag.Title = "Rooms"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Rooms</h3>
+        <p style="color:var(--text-muted);font-size:14px;margin:0;">
+            @Model.Count room(s) available
+        </p>
+    </div>
+    <a href="@Url.Action("Create")" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Add Room
+    </a>
+</div>
+<!-- Search bar -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="input-group">
+            <span class="input-group-text" style="background:transparent;border-right:none;">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" id="searchInput" class="form-control"
+                   placeholder="Search rooms by name,type..."
+                   style="border-left:none;" />
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Capacity</th>
+                        <th>Available Days</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No rooms yet.</td>
+                        </tr>
+                    }
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td><strong>@r.RoomName</strong></td>
+                            <td><span class="badge bg-light text-dark border">@r.RoomType</span></td>
+                            <td><span class="badge bg-primary">@r.RoomCapacity seats</span></td>
+                            <td style="font-size:12px;">@r.RoomAvailability</td>
+                            <td>
+                                <a href="@Url.Action("Edit", new { id = r.RoomId })"
+                                   class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                @using (Html.BeginForm("Delete", "Room",
+                                    new { id = r.RoomId }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Delete @r.RoomName?');">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        document.getElementById('searchInput').addEventListener('input', function () {
+            var term = this.value.toLowerCase();
+            var rows = document.querySelectorAll('tbody tr');
+            rows.forEach(function (row) {
+                var text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+    </script>
+}

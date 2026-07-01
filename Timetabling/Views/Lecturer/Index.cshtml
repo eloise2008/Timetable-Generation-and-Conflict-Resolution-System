@@ -1,0 +1,112 @@
+﻿@model List<Timetabling.Models.Lecturer>
+@{ ViewBag.Title = "Lecturers"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Lecturers</h3>
+        <p style="color:var(--text-muted);font-size:14px;margin:0;">
+            @Model.Count lecturer(s) registered
+        </p>
+    </div>
+    <a href="@Url.Action("Create")" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Add Lecturer
+    </a>
+</div>
+<!-- Search bar -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="input-group">
+            <span class="input-group-text" style="background:transparent;border-right:none;">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" id="searchInput" class="form-control"
+                   placeholder="Search lecturers by name, department...."
+                   style="border-left:none;" />
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Available Days</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">
+                                No lecturers yet.
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var l in Model)
+                    {
+                        <tr>
+                            <td><strong>@l.LecturerName</strong></td>
+                            <td>@l.LecturerDepartment</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(l.LecturerAvailability))
+                                {
+                                    foreach (var d in l.LecturerAvailability.Split(','))
+                                    {
+                                        <span class="badge bg-light text-dark border me-1">
+                                            @d.Trim()
+                                        </span>
+                                    }
+                                }
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Edit", new { id = l.LecturerId })"
+                                   class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="@Url.Action("Courses", new { id = l.LecturerId })"
+                                   class="btn btn-sm btn-outline-success me-1"
+                                   title="Assign Courses">
+                                    <i class="bi bi-book"></i>
+                                </a>
+                                @using (Html.BeginForm("Delete", "Lecturer",
+                                    new { id = l.LecturerId }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Delete @l.LecturerName?');">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<input type="text" id="searchInput" class="form-control mb-3"
+       placeholder="Search by course code, lecturer, room..." />
+
+@section Scripts {
+    <script>
+        document.getElementById('searchInput').addEventListener('input', function () {
+            var term = this.value.toLowerCase();
+            // Search grid cards
+            document.querySelectorAll('.tt-card, [style*="border-left"]').forEach(function (card) {
+                var text = card.textContent.toLowerCase();
+                card.style.opacity = text.includes(term) || term === '' ? '1' : '0.15';
+            });
+            // Search list rows
+            document.querySelectorAll('tbody tr').forEach(function (row) {
+                var text = row.textContent.toLowerCase();
+                row.style.display = (text.includes(term) || term === '') ? '' : 'none';
+            });
+        });
+    </script>
+}

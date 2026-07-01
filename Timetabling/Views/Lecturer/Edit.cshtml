@@ -1,0 +1,70 @@
+﻿@model Timetabling.Models.Lecturer
+@{ ViewBag.Title = "Edit Lecturer";
+    var allDays = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+    var selDays = (Model.LecturerAvailability ?? "").Split(',')
+                  .Select(d => d.Trim()).ToList(); }
+
+<div class="mb-4">
+    <h3 class="fw-bold mb-1">Edit Lecturer</h3>
+    <p style="color:var(--text-muted);font-size:14px;margin:0;">
+        <a href="@Url.Action("Index")">Lecturers</a> › Edit Lecturer
+    </p>
+</div>
+
+<div class="card" style="max-width:600px;">
+    <div class="card-body">
+        @using (Html.BeginForm("Edit", "Lecturer", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.LecturerId)
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Full Name *</label>
+                    @Html.TextBoxFor(m => m.LecturerName, new { @class = "form-control" })
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Department (text) *</label>
+                    @Html.TextBoxFor(m => m.LecturerDepartment, new { @class = "form-control" })
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Department</label>
+                    @Html.DropDownListFor(m => m.DepartmentId,
+                        new SelectList(ViewBag.Departments, "DepartmentId", "DepartmentName", Model.DepartmentId),
+                        "-- Select --", new { @class = "form-select" })
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Available Days</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var d in allDays)
+                        {
+                            <div class="form-check border rounded px-3 py-2" style="margin:0;">
+                                <input class="form-check-input avail-chk" type="checkbox"
+                                       value="@d" id="day_@d"
+                                       @(selDays.Contains(d) ? "checked" : "") />
+                                <label class="form-check-label" for="day_@d">@d</label>
+                            </div>
+                        }
+                    </div>
+                    @Html.HiddenFor(m => m.LecturerAvailability, new { id = "availHidden" })
+                </div>
+                <div class="col-12 d-flex gap-2 mt-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Save Changes
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    function syncAvail() {
+        var checked = [...document.querySelectorAll('.avail-chk:checked')].map(c => c.value);
+        document.getElementById('availHidden').value = checked.join(',');
+    }
+    document.querySelectorAll('.avail-chk').forEach(c => c.addEventListener('change', syncAvail));
+    syncAvail();
+    </script>
+}

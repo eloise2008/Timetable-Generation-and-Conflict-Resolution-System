@@ -1,0 +1,167 @@
+﻿@model Timetabling.Models.ConflictReport
+@{ ViewBag.Title = "Conflict Report"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Conflict Report</h3>
+        <p style="color:var(--text-muted);font-size:14px;margin:0;">
+            @Model.FileName — @Model.AcademicYear @Model.Semester Semester
+        </p>
+    </div>
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Upload Another
+    </a>
+</div>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-4">
+        <div class="stat-card">
+            <div class="stat-icon si-blue"><i class="bi bi-calendar-check"></i></div>
+            <div>
+                <div class="stat-num">@Model.TotalEntries</div>
+                <div class="stat-lbl">Total Entries</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="stat-card">
+            <div class="stat-icon @(Model.HasConflicts ? "si-red" : "si-green")">
+                <i class="bi bi-@(Model.HasConflicts ? "exclamation-triangle" : "check-circle")">
+                </i>
+            </div>
+            <div>
+                <div class="stat-num">@Model.Conflicts.Count</div>
+                <div class="stat-lbl">Conflicts Found</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="stat-card">
+            <div class="stat-icon si-green"><i class="bi bi-check-circle"></i></div>
+            <div>
+                <div class="stat-num">@Model.ValidAssignments.Count</div>
+                <div class="stat-lbl">Valid Assignments</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.HasConflicts)
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <strong>No conflicts found!</strong>
+        This timetable is valid. All @Model.TotalEntries entries
+        satisfy the hard constraints.
+    </div>
+}
+else
+{
+    <div class="alert alert-danger mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>@Model.Conflicts.Count conflict(s) detected.</strong>
+        The CSP solver will automatically reassign the conflicted courses
+        while preserving all @Model.ValidAssignments.Count valid assignments.
+    </div>
+
+    <!-- Conflict list -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+            Detected Conflicts
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table mb-0" style="font-size:13px;">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Course 1</th>
+                            <th>Course 2</th>
+                            <th>Day</th>
+                            <th>Time</th>
+                            <th>Room</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ int i = 1; }
+                        @foreach (var c in Model.Conflicts)
+                        {
+                            <tr>
+                                <td>@(i++)</td>
+                                <td>
+                                    @if (c.Type == "LecturerClash")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-person-x me-1"></i>
+                                            Lecturer Clash
+                                        </span>
+                                    }
+                                    else if (c.Type == "RoomClash")
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-building-x me-1"></i>
+                                            Room Clash
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info text-dark">
+                                            <i class="bi bi-people-fill me-1"></i>
+                                            Capacity
+                                        </span>
+                                    }
+                                </td>
+                                <td style="max-width:280px;font-size:12px;">
+                                    @c.Description
+                                </td>
+                                <td>
+                                    <strong>@c.CourseCode1</strong>
+                                </td>
+                                <td>
+                                    <strong>@c.CourseCode2</strong>
+                                </td>
+                                <td>@c.Day</td>
+                                <td style="white-space:nowrap;">@c.TimeSlot</td>
+                                <td>@c.Room</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolve button -->
+    <div class="card">
+        <div class="card-body">
+            <h6 class="fw-bold mb-2">
+                <i class="bi bi-magic text-warning me-2"></i>
+                Auto-Resolve Conflicts
+            </h6>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+                The CSP backtracking solver will reassign only the
+                <strong>@Model.Conflicts.Count conflicted course(s)</strong>,
+                keeping all <strong>
+                    @Model.ValidAssignments.Count
+                valid assignments
+            </strong> exactly as they are.
+        </p>
+        @using (Html.BeginForm("Resolve", "Conflict", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-generate btn"
+                    onclick="return confirm('Run CSP solver to resolve conflicts?');">
+                <i class="bi bi-magic me-2"></i>
+                Resolve Conflicts Now
+            </button>
+            <a href="@Url.Action("Index")" class="btn btn-outline-secondary ms-2">
+                Cancel
+            </a>
+        }
+    </div>
+</div>
+}

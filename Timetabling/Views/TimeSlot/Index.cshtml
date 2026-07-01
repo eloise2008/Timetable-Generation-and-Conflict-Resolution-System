@@ -1,0 +1,100 @@
+﻿@model List<Timetabling.Models.TimeSlot>
+@{ ViewBag.Title = "Time Slots"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Time Slots</h3>
+        <p style="color:var(--text-muted);font-size:14px;margin:0;">
+            @Model.Count slot(s) defined
+        </p>
+    </div>
+    <a href="@Url.Action("Create")" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>Add Time Slot
+    </a>
+</div>
+<!-- Search bar -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="input-group">
+            <span class="input-group-text" style="background:transparent;border-right:none;">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input type="text" id="searchInput" class="form-control"
+                   placeholder="Search Timeslot by day, time ...."
+                   style="border-left:none;" />
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                No time slots yet.
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var t in Model.OrderBy(x => x.DayOrder).ThenBy(x => x.StartTime))
+                    {
+                        <tr>
+                            <td><strong>@t.Day</strong></td>
+                            <td>@t.StartTime</td>
+                            <td>@t.EndTime</td>
+                            <td>
+                                @if (t.IsEarlyOrLate)
+                                {
+                                    <span class="badge bg-warning text-dark">Early / Late</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Peak Hours</span>
+                                }
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Edit", new { id = t.TimeId })"
+                                   class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                @using (Html.BeginForm("Delete", "TimeSlot",
+                                    new { id = t.TimeId }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Delete this slot?');">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        document.getElementById('searchInput').addEventListener('input', function () {
+            var term = this.value.toLowerCase();
+            var rows = document.querySelectorAll('tbody tr');
+            rows.forEach(function (row) {
+                var text = row.textContent.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+    </script>
+}

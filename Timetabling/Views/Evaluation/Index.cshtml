@@ -1,0 +1,477 @@
+﻿@model Timetabling.Models.EvaluationMetrics
+@{ ViewBag.Title = "Evaluation Metrics"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Evaluation Metrics</h3>
+        <p style="color:var(--text-muted);font-size:14px;margin:0;">
+            @if (Model?.Session != null)
+            {
+                @(Model.Session.SessionName + " — " + Model.Session.AcademicYear)
+            }
+        </p>
+    </div>
+    @if (ViewBag.Sessions != null)
+    {
+        <div class="d-flex gap-2 flex-wrap">
+            @foreach (var s in (List<Timetabling.Models.TimetableSession>)ViewBag.Sessions)
+            {
+                <a href="@Url.Action("Index", new { sessionId = s.SessionId })"
+                   class="btn btn-sm @(ViewBag.CurrentSessionId == s.SessionId ? "btn-primary" : "btn-outline-primary")">
+                    @s.Semester @s.AcademicYear
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@if (Model == null || Model.CoursesScheduled == 0)
+{
+    <div class="card text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-bar-chart-line" style="font-size:48px;color:#cbd5e1;"></i>
+            <h5 class="mt-3" style="color:var(--text-muted);">No data to evaluate</h5>
+            <p style="color:var(--text-muted);font-size:14px;">Generate a timetable first.</p>
+            <a href="@Url.Action("Generate","Timetable")" class="btn btn-primary mt-2">
+                <i class="bi bi-magic me-1"></i>Generate Timetable
+            </a>
+        </div>
+    </div>
+    return;
+}
+
+<!-- Overall score -->
+<div class="card mb-4" style="border-left:4px solid
+    @(Model.OverallQualityScore >= 90 ? "#16a34a" :
+      Model.OverallQualityScore >= 75 ? "#2563a8" :
+      Model.OverallQualityScore >= 60 ? "#d97706" : "#dc2626");">
+    <div class="card-body d-flex align-items-center gap-4">
+        <div style="text-align:center;min-width:80px;">
+            <div style="font-size:36px;font-weight:700;color:
+                @(Model.OverallQualityScore >= 90 ? "#16a34a" :
+                  Model.OverallQualityScore >= 75 ? "#2563a8" :
+                  Model.OverallQualityScore >= 60 ? "#d97706" : "#dc2626");">
+                @Model.OverallQualityScore
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);">/ 100</div>
+        </div>
+        <div>
+            <div style="font-size:18px;font-weight:600;">@Model.QualityRating</div>
+            <div style="font-size:13px;color:var(--text-muted);">
+                Overall timetable quality score — weighted composite of all 6 metrics
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 6 metric cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">
+                    M1 — Hard constraint satisfaction
+                </div>
+                <div style="font-size:28px;font-weight:700;color:
+                    @(Model.HardConstraintSatisfactionRate >= 100 ? "#16a34a" : "#dc2626");">
+                    @Model.HardConstraintSatisfactionRate%
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);">
+                    @Model.TotalViolations violations in @Model.TotalConstraintChecks checks
+                </div>
+                <div class="mt-2" style="font-size:12px;">
+                    @if (Model.TotalViolations == 0)
+                    {
+                        <span class="badge bg-success">All constraints satisfied</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">@Model.TotalViolations constraint(s) violated</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">
+                    M2 — Scheduling efficiency
+                </div>
+                <div style="font-size:28px;font-weight:700;color:
+                    @(Model.SchedulingEfficiency >= 95 ? "#16a34a" : "#d97706");">
+                    @Model.SchedulingEfficiency%
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);">
+                    @Model.CoursesScheduled of @Model.TotalCoursesLoaded courses scheduled
+                </div>
+                <div class="mt-2">
+                    <div style="background:#e2e8f0;border-radius:4px;height:6px;">
+                        <div style="background:#2563a8;border-radius:4px;height:6px;
+                             width:@Model.SchedulingEfficiency%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">
+                    M3 — Soft constraint penalty
+                </div>
+                <div style="font-size:28px;font-weight:700;color:
+                    @(Model.TotalSoftPenalty < 50 ? "#16a34a" :
+                      Model.TotalSoftPenalty < 200 ? "#d97706" : "#dc2626");">
+                    @Model.TotalSoftPenalty
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);">
+                    Avg @Model.AverageSoftPenalty per course —
+                    @Model.HighPenaltyCount high-penalty assignments
+                </div>
+                <div class="mt-2" style="font-size:12px;color:var(--text-muted);">
+                    Lower = better. Target: &lt; 50 total
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">
+                    M4 — Room utilisation
+                </div>
+                <div style="font-size:28px;font-weight:700;color:
+                    @(Model.AverageRoomUtilisation >= 60 ? "#16a34a" :
+                      Model.AverageRoomUtilisation >= 40 ? "#d97706" : "#dc2626");">
+                    @Model.AverageRoomUtilisation%
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);">
+                    Range: @Model.MinRoomUtilisation% – @Model.MaxRoomUtilisation%
+                </div>
+                <div class="mt-2" style="font-size:12px;color:var(--text-muted);">
+                    Average students / room capacity across all assignments
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">
+                    M5 — Lecturer workload (σ)
+                </div>
+                <div style="font-size:28px;font-weight:700;color:
+                    @(Model.LecturerWorkloadStdDev < 2 ? "#16a34a" :
+                      Model.LecturerWorkloadStdDev < 4 ? "#d97706" : "#dc2626");">
+                    @Model.LecturerWorkloadStdDev
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);">
+                    Avg @Model.AverageCoursesPerLecturer courses/lecturer —
+                    Range: @Model.MinCoursesForOneLecturer–@Model.MaxCoursesForOneLecturer
+                </div>
+                <div class="mt-2" style="font-size:12px;color:var(--text-muted);">
+                    Standard deviation — lower = more evenly spread
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">
+                    M6 — Weekly slot balance (σ)
+                </div>
+                <div style="font-size:28px;font-weight:700;color:
+                    @(Model.SlotBalanceStdDev < 3 ? "#16a34a" :
+                      Model.SlotBalanceStdDev < 6 ? "#d97706" : "#dc2626");">
+                    @Model.SlotBalanceStdDev
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);">
+                    @foreach (var kvp in Model.AssignmentsPerDay)
+                    {
+                        <span class="me-2">@kvp.Key.Substring(0, 3): @kvp.Value</span>
+                    }
+                </div>
+                <div class="mt-2" style="font-size:12px;color:var(--text-muted);">
+                    Standard deviation — lower = more balanced week
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Time & Space Complexity -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-calculator me-2"></i>
+            Algorithm Complexity Analysis
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div style="background:#f8fafc;border-radius:8px;padding:16px;
+                            border:1px solid var(--border);">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-clock text-primary me-2"></i>
+                            Time Complexity
+                        </h6>
+                        <table class="table table-sm mb-0" style="font-size:12px;">
+                            <thead>
+                                <tr>
+                                    <th>Case</th>
+                                    <th>Complexity</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-success">Best</span></td>
+                                    <td><code>O(n)</code></td>
+                                    <td>No backtracking needed</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-warning text-dark">Average</span></td>
+                                    <td><code>O(n × d)</code></td>
+                                    <td>n = courses, d = domain size</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-danger">Worst</span></td>
+                                    <td><code>O(d<sup>n</sup>)</code></td>
+                                    <td>Full backtracking tree</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="mt-3" style="font-size:12px;color:var(--text-muted);">
+                            <strong>Current run:</strong>
+                            n = @Model.CoursesScheduled courses,
+                            d = @(Model.RoomDetails.Count * 10) avg domain size
+                            (rooms × slots per room).
+                            Observed time: <strong>@Model.GenerationTimeSec s</strong>
+                            — well within polynomial bounds due to
+                            MRV heuristic + forward checking.
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div style="background:#f8fafc;border-radius:8px;padding:16px;
+                            border:1px solid var(--border);">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-database text-purple me-2"
+                               style="color:#8b5cf6;"></i>
+                            Space Complexity
+                        </h6>
+                        <table class="table table-sm mb-0" style="font-size:12px;">
+                            <thead>
+                                <tr>
+                                    <th>Component</th>
+                                    <th>Space</th>
+                                    <th>Detail</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Assignment stack</td>
+                                    <td><code>O(n)</code></td>
+                                    <td>@Model.CoursesScheduled entries</td>
+                                </tr>
+                                <tr>
+                                    <td>Conflict hash sets</td>
+                                    <td><code>O(n × t)</code></td>
+                                    <td>n courses × t time slots</td>
+                                </tr>
+                                <tr>
+                                    <td>Domain storage</td>
+                                    <td><code>O(n × d)</code></td>
+                                    <td>Candidate list per variable</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total</strong></td>
+                                    <td><code>O(n × d)</code></td>
+                                    <td>Polynomial — feasible</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="mt-3" style="font-size:12px;color:var(--text-muted);">
+                            <strong>Observed memory:</strong>
+                            <strong>@Model.MemoryUsedMB MB</strong>
+                            for @Model.CoursesScheduled courses.
+                            HashSet lookups reduced constraint checking
+                            from <code>O(n²)</code> to <code>O(1)</code>
+                            per assignment.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scalability table -->
+                <div class="col-12">
+                    <div style="background:#f8fafc;border-radius:8px;padding:16px;
+                            border:1px solid var(--border);">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-graph-up text-success me-2"></i>
+                            Scalability Analysis
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0" style="font-size:12px;">
+                                <thead>
+                                    <tr>
+                                        <th>Scale</th>
+                                        <th>Courses</th>
+                                        <th>Rooms</th>
+                                        <th>Time Slots</th>
+                                        <th>Est. Time</th>
+                                        <th>Feasibility</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Small</td>
+                                        <td>&lt; 50</td>
+                                        <td>10</td>
+                                        <td>25</td>
+                                        <td>&lt; 1s</td>
+                                        <td><span class="badge bg-success">Trivial</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Medium</td>
+                                        <td>50–150</td>
+                                        <td>20</td>
+                                        <td>50</td>
+                                        <td>1–5s</td>
+                                        <td><span class="badge bg-success">Feasible</span></td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td><strong>Current ★</strong></td>
+                                        <td><strong>@Model.CoursesScheduled</strong></td>
+                                        <td><strong>@Model.RoomDetails.Count</strong></td>
+                                        <td><strong>@Model.AssignmentsPerDay.Values.Sum()</strong></td>
+                                        <td><strong>@Model.GenerationTimeSec s</strong></td>
+                                        <td>
+                                            <span class="badge @(Model.GenerationTimeSec < 30
+                                            ? "bg-success" : "bg-warning text-dark")">
+                                                @(Model.GenerationTimeSec < 30
+                                                ? "Feasible" : "Acceptable")
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Large</td>
+                                        <td>300–500</td>
+                                        <td>40</td>
+                                        <td>100</td>
+                                        <td>10–60s</td>
+                                        <td>
+                                            <span class="badge bg-warning text-dark">
+                                                Needs optimization
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Very Large</td>
+                                        <td>&gt; 500</td>
+                                        <td>50+</td>
+                                        <td>100+</td>
+                                        <td>&gt; 60s</td>
+                                        <td>
+                                            <span class="badge bg-danger">
+                                                Heuristic required
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-2" style="font-size:11px;color:var(--text-muted);">
+                            ★ MRV (Minimum Remaining Values) heuristic and HashSet-based
+                            O(1) constraint checking keep the system practical for
+                            university-scale scheduling. For very large instances,
+                            a hybrid approach (CSP + genetic algorithm) would be recommended.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Room utilisation table -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-building me-2"></i>Room utilisation breakdown
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0" style="font-size:13px;">
+                <thead>
+                    <tr>
+                        <th>Room</th>
+                        <th>Capacity</th>
+                        <th>Avg Students</th>
+                        <th>Utilisation</th>
+                        <th>Times Used</th>
+                        <th>Rating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.RoomDetails)
+                    {
+                        <tr>
+                            <td><strong>@r.RoomName</strong></td>
+                            <td>@r.Capacity</td>
+                            <td>@r.AvgStudents</td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="flex:1;background:#e2e8f0;border-radius:4px;height:6px;min-width:60px;">
+                                        <div style="background:@(r.UtilPct >= 70 ? "#16a34a" : r.UtilPct >= 40 ? "#d97706" : "#dc2626");
+                                             border-radius:4px;height:6px;width:@(Math.Min(100, r.UtilPct))%;"></div>
+                                    </div>
+                                    <span>@r.UtilPct%</span>
+                                </div>
+                            </td>
+                            <td>@r.TimesUsed</td>
+                            <td>
+                                <span class="badge @(r.UtilPct >= 70 ? "bg-success" : r.UtilPct >= 40 ? "bg-warning text-dark" : "bg-danger")">
+                                    @(r.UtilPct >= 70 ? "Good" : r.UtilPct >= 40 ? "Fair" : "Low")
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Lecturer workload table -->
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-person-badge me-2"></i>Lecturer workload distribution
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table mb-0" style="font-size:13px;">
+                <thead>
+                    <tr><th>Lecturer</th><th>Courses</th><th>Workload vs average</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var l in Model.LecturerDetails)
+                    {
+                        <tr>
+                            <td><strong>@l.LecturerName</strong></td>
+                            <td>@l.CourseCount</td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="flex:1;background:#e2e8f0;border-radius:4px;height:6px;min-width:80px;">
+                                        <div style="background:#2563a8;border-radius:4px;height:6px;
+                                             width:@(Math.Min(100, l.WorkloadPct))%;"></div>
+                                    </div>
+                                    <span style="font-size:12px;color:var(--text-muted);">
+                                        @l.WorkloadPct% of avg
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

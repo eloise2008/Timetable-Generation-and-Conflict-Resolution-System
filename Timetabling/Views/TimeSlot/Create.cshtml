@@ -1,0 +1,43 @@
+﻿@model Timetabling.Models.TimeSlot
+@{ ViewBag.Title = "Add Time Slot"; }
+
+<div class="mb-4">
+    <h3 class="fw-bold mb-1">Add Time Slot</h3>
+    <p style="color:var(--text-muted);font-size:14px;margin:0;">
+        <a href="@Url.Action("Index")">Time Slots</a> › Add Time Slot
+    </p>
+</div>
+
+<div class="card" style="max-width:420px;">
+    <div class="card-body">
+        @using (Html.BeginForm("Create", "TimeSlot", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Day *</label>
+                    @Html.DropDownListFor(m => m.Day,
+                        new SelectList(new[] {
+                            "Monday","Tuesday","Wednesday","Thursday","Friday"
+                        }), "-- Select Day --", new { @class = "form-select" })
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Start Time *</label>
+                    @Html.TextBoxFor(m => m.StartTime,
+                        new { @class = "form-control", placeholder = "08:00" })
+                </div>
+                <div class="col-6">
+                    <label class="form-label">End Time *</label>
+                    @Html.TextBoxFor(m => m.EndTime,
+                        new { @class = "form-control", placeholder = "10:00" })
+                </div>
+                <div class="col-12 d-flex gap-2 mt-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Save Slot
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>

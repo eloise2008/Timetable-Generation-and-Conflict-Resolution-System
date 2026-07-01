@@ -1,0 +1,158 @@
+﻿@{
+    ViewBag.Title = "Dashboard";
+}
+
+<div class="mb-4">
+    <h3 class="fw-bold mb-1">Welcome, Administrator</h3>
+    <p style="color:var(--text-muted);font-size:14px;margin:4px 0 0;">
+        University Timetabling System — CSP Backtracking Scheduler
+    </p>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon si-blue"><i class="bi bi-book"></i></div>
+            <div><div class="stat-num">@ViewBag.CourseCount</div><div class="stat-lbl">Courses</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon si-amber"><i class="bi bi-person-badge"></i></div>
+            <div><div class="stat-num">@ViewBag.LecturerCount</div><div class="stat-lbl">Lecturers</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon si-green"><i class="bi bi-building"></i></div>
+            <div><div class="stat-num">@ViewBag.RoomCount</div><div class="stat-lbl">Rooms</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon si-red"><i class="bi bi-clock"></i></div>
+            <div><div class="stat-num">@ViewBag.SlotCount</div><div class="stat-lbl">Time Slots</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon si-blue"><i class="bi bi-diagram-3"></i></div>
+            <div><div class="stat-num">@ViewBag.DeptCount</div><div class="stat-lbl">Departments</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon si-green"><i class="bi bi-calendar-check"></i></div>
+            <div><div class="stat-num">@ViewBag.TTCount</div><div class="stat-lbl">Scheduled</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions + Algo Info -->
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-lightning-charge text-warning"></i> Quick Actions
+            </div>
+            <div class="card-body d-flex flex-wrap gap-2 pt-3">
+                @using (Html.BeginForm("Generate", "Timetable", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-generate"
+                            onclick="return confirm('Generate new timetable for the entire university?');">
+                        <i class="bi bi-magic me-2"></i>Generate Timetable
+                    </button>
+                }
+                <a href="@Url.Action("Index","Timetable")" class="btn btn-outline-primary">
+                    <i class="bi bi-calendar-week me-1"></i>View Timetable
+                </a>
+                <a href="@Url.Action("Create","Course")" class="btn btn-outline-secondary">
+                    <i class="bi bi-plus me-1"></i>Add Course
+                </a>
+                <a href="@Url.Action("Create","Lecturer")" class="btn btn-outline-secondary">
+                    <i class="bi bi-plus me-1"></i>Add Lecturer
+                </a>
+                <a href="@Url.Action("Create","Room")" class="btn btn-outline-secondary">
+                    <i class="bi bi-plus me-1"></i>Add Room
+                </a>
+                <a href="@Url.Action("Create","TimeSlot")" class="btn btn-outline-secondary">
+                    <i class="bi bi-plus me-1"></i>Add Time Slot
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100" style="background:#1a3c5e;color:#fff;border:none;">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-cpu" style="font-size:38px;opacity:.8;"></i>
+                <h6 class="mt-3 fw-bold">CSP Backtracking Algorithm</h6>
+                <p style="font-size:12px;opacity:.7;margin:0;">
+                    <strong>Hard:</strong> no clashes, capacity, availability.<br><br>
+                    <strong>Soft:</strong> even spread, preferred slots, no back-to-back.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Management Table -->
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-table"></i> Data Management
+    </div>
+    <div class="card-body p-0">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Module</th>
+                    <th>Records</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><i class="bi bi-book text-primary me-2"></i>Courses</td>
+                    <td><span class="badge bg-primary">@ViewBag.CourseCount</span></td>
+                    <td>
+                        <a href="@Url.Action("Index","Course")" class="btn btn-sm btn-outline-primary me-1">View All</a>
+                        <a href="@Url.Action("Create","Course")" class="btn btn-sm btn-primary">+ Add</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-person-badge text-warning me-2"></i>Lecturers</td>
+                    <td><span class="badge bg-warning text-dark">@ViewBag.LecturerCount</span></td>
+                    <td>
+                        <a href="@Url.Action("Index","Lecturer")" class="btn btn-sm btn-outline-primary me-1">View All</a>
+                        <a href="@Url.Action("Create","Lecturer")" class="btn btn-sm btn-primary">+ Add</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-building text-success me-2"></i>Rooms</td>
+                    <td><span class="badge bg-success">@ViewBag.RoomCount</span></td>
+                    <td>
+                        <a href="@Url.Action("Index","Room")" class="btn btn-sm btn-outline-primary me-1">View All</a>
+                        <a href="@Url.Action("Create","Room")" class="btn btn-sm btn-primary">+ Add</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-clock text-danger me-2"></i>Time Slots</td>
+                    <td><span class="badge bg-danger">@ViewBag.SlotCount</span></td>
+                    <td>
+                        <a href="@Url.Action("Index","TimeSlot")" class="btn btn-sm btn-outline-primary me-1">View All</a>
+                        <a href="@Url.Action("Create","TimeSlot")" class="btn btn-sm btn-primary">+ Add</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-diagram-3 text-secondary me-2"></i>Departments</td>
+                    <td><span class="badge bg-secondary">@ViewBag.DeptCount</span></td>
+                    <td>
+                        <a href="@Url.Action("Index","Department")" class="btn btn-sm btn-outline-primary me-1">View All</a>
+                        <a href="@Url.Action("Create","Department")" class="btn btn-sm btn-primary">+ Add</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

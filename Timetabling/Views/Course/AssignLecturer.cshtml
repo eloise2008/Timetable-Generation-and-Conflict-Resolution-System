@@ -1,0 +1,63 @@
+﻿@model Timetabling.Models.Course
+@{ ViewBag.Title = "Assign Lecturer"; }
+
+<div class="mb-4">
+    <h3 class="fw-bold mb-1">Assign Lecturer to Course</h3>
+    <p style="color:var(--text-muted);font-size:14px;margin:0;">
+        <a href="@Url.Action("Index")">Courses</a> › Assign Lecturer
+    </p>
+</div>
+
+<div class="card" style="max-width:560px;">
+    <div class="card-body">
+        <div class="alert alert-danger mb-3" style="font-size:13px;">
+            <i class="bi bi-book me-2"></i>
+            Assigning lecturer for:
+            <strong>@Model.CourseCode — @Model.CourseTitle</strong><br />
+            <small>Current lecturer: @Model.LecturerName</small>
+        </div>
+
+        @using (Html.BeginForm("AssignLecturer", "Course", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="courseId" value="@Model.CourseId" />
+
+            <div class="mb-3">
+                <label class="form-label">Select New Lecturer *</label>
+                <input type="text" id="lecSearch" class="form-control mb-2"
+                       placeholder="Search lecturers..." />
+                <select name="lecturerId" class="form-select"
+                        id="lecSelect" size="8">
+                    @foreach (var l in ViewBag.Lecturers
+                        as List<Timetabling.Models.Lecturer>)
+                    {
+                        <option value="@l.LecturerId"
+                                @(l.LecturerId == Model.LecturerId ? "selected" : "")>
+                            @l.LecturerName — @l.LecturerDepartment
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-person-check me-1"></i>
+                    Assign Lecturer
+                </button>
+                <a href="@Url.Action("Index")"
+                   class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+document.getElementById('lecSearch').addEventListener('input', function() {
+    var term = this.value.toLowerCase();
+    var opts = document.querySelectorAll('#lecSelect option');
+    opts.forEach(function(o) {
+        o.style.display = o.text.toLowerCase().includes(term) ? '' : 'none';
+    });
+});
+    </script>
+}

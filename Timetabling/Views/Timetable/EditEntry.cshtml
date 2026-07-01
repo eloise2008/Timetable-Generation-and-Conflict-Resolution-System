@@ -1,0 +1,167 @@
+﻿@model Timetabling.Models.Assignment
+@{ ViewBag.Title = "Edit Timetable Entry"; }
+
+<div class="mb-4">
+    <h3 class="fw-bold mb-1">Edit Timetable Entry</h3>
+    <p style="color:var(--text-muted);font-size:14px;margin:0;">
+        <a href="@Url.Action("Index")">Timetable</a> › Manual Edit
+    </p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-pencil-square text-primary me-2"></i>
+                Edit Assignment
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger mb-3" style="font-size:13px;">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Manual edit mode.</strong> The system will not check
+                    constraints automatically. You are responsible for ensuring
+                    no clashes are created.
+                </div>
+
+                @using (Html.BeginForm("EditEntry", "Timetable", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="timetableId"
+                           value="@Model.TimetableId" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Course</label>
+                        <input type="text" class="form-control"
+                               value="@Model.Course.CourseCode — @Model.Course.CourseTitle"
+                               disabled />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lecturer</label>
+                        <input type="text" class="form-control"
+                               value="@Model.Course.LecturerName" disabled />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Department</label>
+                        <input type="text" class="form-control"
+                               value="@Model.Course.DepartmentName" disabled />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Room *</label>
+                        <select name="roomId" class="form-select">
+                            @foreach (var r in ViewBag.Rooms
+                                as List<Timetabling.Models.Room>)
+                            {
+                                <option value="@r.RoomId"
+                                        @(r.RoomId == Model.Room.RoomId ? "selected" : "")>
+                                    @r.RoomName — capacity @r.RoomCapacity
+                                    @(r.RoomCapacity < Model.Course.CourseStudentPopulation
+                                        ? "⚠ TOO SMALL" : "✓")
+                                </option>
+                            }
+                        </select>
+                        <div class="form-text">
+                            Course has @Model.Course.CourseStudentPopulation students.
+                            Choose a room with sufficient capacity.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Time Slot *</label>
+                        <select name="timeId" class="form-select">
+                            @foreach (var t in (ViewBag.Slots
+                                as List<Timetabling.Models.TimeSlot>)
+                                .OrderBy(s => s.DayOrder)
+                                .ThenBy(s => s.StartTime))
+                            {
+                                <option value="@t.TimeId"
+                                        @(t.TimeId == Model.TimeSlot.TimeId ? "selected" : "")>
+                                    @t.Day — @t.StartTime to @t.EndTime
+                                    @(t.IsEarlyOrLate ? "(early/late)" : "")
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Save Changes
+                        </button>
+                        <a href="@Url.Action("Index")"
+                           class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>Current Assignment
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0" style="font-size:13px;">
+                    <tr>
+                        <td class="text-muted">Course</td>
+                        <td><strong>@Model.Course.CourseCode</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Current Room</td>
+                        <td>@Model.Room.RoomName (@Model.Room.RoomCapacity seats)</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Current Time</td>
+                        <td>@Model.TimeSlot.Day @Model.TimeSlot.StartTime–@Model.TimeSlot.EndTime</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Students</td>
+                        <td>@Model.Course.CourseStudentPopulation</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Level</td>
+                        <td>@Model.Course.CourseLevel</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Type</td>
+                        <td>
+                            @if (Model.Course.IsUWC)
+                            {
+                                <span class="badge"
+                                      style="background:#f0a500;color:#0f2540;">
+                                    UWC
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-light text-dark border">
+                                    Departmental
+                                </span>
+                            }
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Delete entry -->
+        <div class="card border-danger">
+            <div class="card-header text-danger">
+                <i class="bi bi-trash me-2"></i>Remove Entry
+            </div>
+            <div class="card-body">
+                <p style="font-size:13px;color:var(--text-muted);">
+                    Remove this course from the timetable entirely.
+                    It will not be re-scheduled unless you regenerate.
+                </p>
+                @using (Html.BeginForm("DeleteEntry", "Timetable",
+                    new { id = Model.TimetableId }, FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger btn-sm"
+                            onclick="return confirm('Remove @Model.Course.CourseCode from timetable?');">
+                        <i class="bi bi-trash me-1"></i>Remove from Timetable
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>

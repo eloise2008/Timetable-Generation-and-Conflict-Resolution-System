@@ -1,0 +1,71 @@
+﻿
+@model Timetabling.Models.Course
+@{
+    ViewBag.Title = "Edit Course";
+}
+
+<div class="mb-4">
+    <h3 class="fw-bold mb-1">Edit Course</h3>
+    <p style="color:var(--text-muted);font-size:14px;margin:0;">
+        <a href="@Url.Action("Index")">Courses</a> › Edit Course
+    </p>
+</div>
+
+<div class="card" style="max-width:680px;">
+    <div class="card-body">
+        @using (Html.BeginForm("Edit", "Course", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.CourseId)
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Course Code *</label>
+                @Html.TextBoxFor(m => m.CourseCode,
+                    new { @class = "form-control" })
+            </div>
+            <div class="col-md-8">
+                <label class="form-label">Course Title *</label>
+                @Html.TextBoxFor(m => m.CourseTitle,
+                    new { @class = "form-control" })
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Lecturer *</label>
+                @Html.DropDownListFor(m => m.LecturerId,
+                    new SelectList(ViewBag.Lecturers, "LecturerId", "LecturerName", Model.LecturerId),
+                    "-- Select Lecturer --", new { @class = "form-select" })
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Department</label>
+                @Html.DropDownListFor(m => m.DepartmentId,
+                    new SelectList(ViewBag.Departments, "DepartmentId", "DepartmentName", Model.DepartmentId),
+                    "-- Select Department --", new { @class = "form-select" })
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Level</label>
+                @Html.DropDownListFor(m => m.CourseLevel,
+                    new SelectList(new[] { "100", "200", "300", "400", "500", "600" }, Model.CourseLevel),
+                    "-- Select Level --", new { @class = "form-select" })
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Student Population *</label>
+                @Html.TextBoxFor(m => m.CourseStudentPopulation,
+                    new { @class = "form-control", type = "number", min = "1" })
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Course Type</label>
+                @Html.DropDownListFor(m => m.CourseType,
+                    new SelectList(new[] {
+                        "Departmental", "University Wide Course",
+                    }, Model.CourseType),
+                    "-- Select Type --", new { @class = "form-select" })
+            </div>
+            <div class="col-12 d-flex gap-2 mt-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-1"></i>Save Changes
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,133 @@
+﻿@model Timetabling.Models.GenerateViewModel
+@{ ViewBag.Title = "Generate Timetable"; }
+
+<div class="mb-4">
+    <h3 class="fw-bold mb-1">Generate Timetable</h3>
+    <p style="color:var(--text-muted);font-size:14px;margin:0;">
+        Select the academic year and semester then run the CSP solver
+    </p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-magic text-warning me-2"></i>Scheduler Settings
+            </div>
+            <div class="card-body">
+                @using (Html.BeginForm("Generate", "Timetable", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Academic Year *</label>
+                            @Html.TextBoxFor(m => m.AcademicYear, new
+                            {
+                                @class = "form-control",
+                                placeholder = "e.g. 2025/2026"
+                            })
+                            <div class="form-text">Format: YYYY/YYYY</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Semester *</label>
+                            @Html.DropDownListFor(m => m.Semester,
+                                new SelectList(new[] { "Alpha", "Omega" }, Model.Semester),
+                                new { @class = "form-select" })
+                            <div class="form-text">
+                                Alpha = First Semester &nbsp;|&nbsp; Omega = Second Semester
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Session Name <small class="text-muted">(optional)</small></label>
+                            @Html.TextBoxFor(m => m.SessionName, new
+                            {
+                                @class = "form-control",
+                                placeholder = "e.g. 2025/2026 Alpha Semester Timetable"
+                            })
+                            <div class="form-text">Leave blank to auto-generate</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="alert alert-danger mb-0" style="font-size:13px;">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                Each generation creates a <strong>new session</strong> saved in History.
+                                Previous sessions are never overwritten.
+                            </div>
+                        </div>
+                        <div class="col-12 d-flex gap-2">
+                            <button type="submit" class="btn btn-generate btn">
+                                <i class="bi bi-magic me-2"></i>Generate Now
+                            </button>
+                            <a href="@Url.Action("History")" class="btn btn-outline-secondary">
+                                <i class="bi bi-clock-history me-1"></i>View History
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-3" style="background:#1a3c5e;color:#fff;border:none;">
+            <div class="card-body py-4">
+                <h6 class="fw-bold"><i class="bi bi-cpu me-2"></i>CSP Backtracking Algorithm</h6>
+                <p style="font-size:12px;opacity:.8;margin:10px 0 0;">
+                    Schedules courses while enforcing all hard constraints:
+                </p>
+                <ul style="font-size:12px;opacity:.75;margin:8px 0 0;padding-left:18px;line-height:2;">
+                    <li>No lecturer teaches two classes at the same time</li>
+                    <li>No room hosts two classes simultaneously</li>
+                    <li>Room capacity must fit student population</li>
+                    <li>Lecturer must be available on scheduled day</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-bar-chart me-2"></i>Current Data Summary
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0" style="font-size:13px;">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Alpha semester courses</td>
+                            <td>
+                                <strong>@ViewBag.AlphaCount</strong>
+                                @if ((int)ViewBag.AlphaCount == 0)
+                                {
+                                    <span class="badge bg-danger ms-2">None set</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Omega semester courses</td>
+                            <td>
+                                <strong>@ViewBag.OmegaCount</strong>
+                                @if ((int)ViewBag.OmegaCount == 0)
+                                {
+                                    <span class="badge bg-danger ms-2">None set</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Rooms available</td>
+                            <td><strong>@ViewBag.RoomCount</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Time slots</td>
+                            <td><strong>@ViewBag.SlotCount</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Max schedulable</td>
+                            <td>
+                                <strong>@ViewBag.Capacity</strong>
+                                <small class="text-muted">(rooms × slots)</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
